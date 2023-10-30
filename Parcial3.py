@@ -58,6 +58,7 @@ class app(Tk):
         self.caja = Combobox(self, state="readonly",values=["microondas", "refrigerador", "television","computadora","plancha","licuadora","horno","lavadora","secadora","lavavajillas","freidora","wafflera","ventilador","consola de videojuegos","radio","estufa","congelador","camara","aspiradora","cafetera"], width=20)
         self.caja.place(x=20, y =50)
 
+        self.dispexist = False
         #objetos
 
         self.l1=Label(self,text="Potencia del dispositivo(w):");self.l1.place(x=10,y=90); self.l1.config(bg="#ffc2d1")
@@ -76,7 +77,7 @@ class app(Tk):
         self.e5=Entry(self);self.e5.place(x=300,y=50)
         
         self.btn1= Button(self, text="agregar dispositivo", width=35,command=self.AgregarDispositivo, bg="#ffc2d1");self.btn1.place(x=550,y=10)
-        self.btn2= Button(self, text="diametro minimo y energia a pagar", width=35,command=self.Diametro, bg="#ffb3c6");self.btn2.place(x=550,y=40)
+        self.btn2= Button(self, text="diametro minimo y energia a pagar", width=35,command=self.calcular, bg="#ffb3c6");self.btn2.place(x=550,y=40)
         self.btn3= Button(self, text="graficar", width=35,command=self.graficar, bg="#ff8fab");self.btn3.place(x=550,y=70)       
         
         #self.l5=Label(self, text="");self.l5.place(x=10,y=290); self.l5.config(bg="#ff8fab")
@@ -94,51 +95,32 @@ class app(Tk):
         self.l17=Label(self, text="");self.l17.place(x=10,y=710); self.l17.config(bg="#ff8fab")
 
         self.energiaTotal=0
+        self.Imax = 0 
+        self.DispMasGaston = ""
+        self.masV = 0 
+        self.diametro = 0
 
         #canvas
         self.c1 = Canvas(self, width=800, height=500, bg="white")
         self.c1.place(x=350, y=150)
         self.c1.config(bg="misty rose")
 
-    """
-    def llamar(self): # para llamar a las diferentes pantallas
-        if(self.caja.get()=="Placas paralelas"):
-            self.PlacasGUI()
-        elif (self.caja.get()=="Esferico"):
-            self.EsfericoGUI()
-        else:
-            self.CilindricoGUI()"""
+  
 
-    def Diametro(self):
-        self.longitud= float(self.e5.get())
-        if (self.longitud<0):
-            messagebox.showerror("error","ingrese correctamente la longitud")
-        else: 
-            pass
-            #calcular el diametro
-            self.resistividad = 1.72*10**-8
-            #self.radio = (self.resistividad * self.longitud * (self.corriente)**2 )
-            #self.diametro = self.radio * 2
-            #self.area= pi * (self.radio)**2
-
-    
 
     def AgregarDispositivo(self):
-        """
-        Ecuaciones utiles: 
         
-        """
+        
         try:
             #obtener los datos del dispositivo y del cable
-                        
+            self.dispexist = True
             self.nombre= str(self.caja.get())
             self.potencia= float(self.e1.get())
             self.corriente= float(self.e2.get())
             self.voltaje= float(self.e3.get())
             self.horas= float(self.e4.get())
             
-            
-            if (self.horas > 0):
+            if (self.horas > 0 ):
                 
                 #verificar que la lista no pase de 10 dispositivos
                 if len(listaDispositivos)>10:
@@ -149,7 +131,7 @@ class app(Tk):
                     #calculos, para luego agregarlo al diccionario
                     
                     self.costoHora= 126 #Kw/h
-                    self.tiempo= (365/1)*(self.horas/1)
+                    self.tiempo= (30/1)*(self.horas/1)
                     self.energia=(self.potencia* self.tiempo)/1000
 
                     #creamos un diccionario con todos los valores 
@@ -164,6 +146,13 @@ class app(Tk):
                     #sumar a la energia todal la energia agregada
                     self.energiaTotal += self.energia
                     self.l7.config(text=str(self.energiaTotal))
+
+                    # que disp gasta mas 
+                    if self.corriente > self.Imax: 
+                        self.Imax = self.corriente 
+                        self.DispMasGaston = self.nombre
+                        self.masV = self.voltaje
+
                     print(self.energiaTotal)
                     
                     messagebox.showinfo("atencion","se agrego dispositivo")
@@ -183,7 +172,7 @@ class app(Tk):
 
                 #-----limpiar canvas-----
                 self.limpiar()
-                #-----calculo de capacitancia------
+            
                 
                 self.l12.config(text=" ")
                 self.l13.config(text=" ")
@@ -199,6 +188,43 @@ class app(Tk):
         except Exception as msg: 
             messagebox.showerror("error", "asegurese de ingresar un número válido y todos los valores ")
                        
+    def calcular(self):
+        self.largo = float(self.e5.get())
+           
+        if(self.dispexist):
+            if(self.largo>0):
+                self.diametro = 2*(((self.Imax*1.72e-8*self.largo)/(pi*self.masV))**1/2)
+                print(self.diametro )
+                if self.diametro > 0.519: 
+                    messagebox.showinfo("Info","El Calibre recomendado para evitar cualquier mal funcionamiento es de: 4")
+
+                if self.diametro > 0.462 and self.diametro < 0.519:
+                    messagebox.showinfo("Info","El calibre recomendado para evitar cualquier mal funcionamiento es de: 5")
+
+                if self.diametro > 0.412 and self.diametro < 0.462:
+                    messagebox.showinfo("Info","El calibre recomendado para evitar cualquier mal funcionamiento es de: 6")
+            
+                if self.diametro > 0.326 and self.diametro < 0.412:
+                    messagebox.showinfo("Info","El calibre recomendado para evitar cualquier mal funcionamiento es de: 8")
+
+                if self.diametro > 0.259 and self.diametro < 0.326:
+                    messagebox.showinfo("Info","El calibre recomendado para evitar cualquier mal funcionamiento es de: 10")
+
+                if self.diametro > 0.205 and self.diametro < 0.259:
+                    messagebox.showinfo("Info","El calibre recomendado para evitar cualquier mal funcionamiento es de: 12")
+
+                if self.diametro < 0.205:
+                    messagebox.showinfo("Info","El calibre recomendado para evitar cualquier mal funcionamiento es de: 14")
+
+            else:
+                messagebox.showerror("error", "Debe de ingresar el largo del cable ")
+        else:
+            messagebox.showerror("error", "Debe de ingresar al menos un dispositivo ")
+
+
+
+   
+    
 
     def graficar(self):
         # obtener todas las llaves para ver que es lo que hay
