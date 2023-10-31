@@ -3,7 +3,7 @@
 # autores:  Francis Aguilar #222432
 #           Angela García   #22869
 # recursos: python 3.10
-# fecha de entrega: 29/10/2023
+# fecha de entrega: 30/10/2023
 # sin modificaciones
 
 # librerias:
@@ -13,10 +13,15 @@ from math import sin, cos, tan
 from math import pi
 from math import log
 from tkinter.ttk import Combobox 
-#from PIL import image
-import io 
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
+"""
+ATENCION: antes de correr el programa asegurese de tener instaladas las librerias: 
+-  PIL 
+-  requests
 
-#from sympy import *  #libreria para las derivadas e integrales
+"""
 
 Electrodomesticos={
     #llave, valor:link imagen
@@ -81,6 +86,7 @@ class app(Tk):
         self.btn1= Button(self, text="agregar dispositivo", width=35,command=self.AgregarDispositivo, bg="#ffc2d1");self.btn1.place(x=550,y=10)
         self.btn2= Button(self, text="diametro minimo y energia a pagar", width=35,command=self.calcular, bg="#ffb3c6");self.btn2.place(x=550,y=40)
         self.btn3= Button(self, text="graficar", width=35,command=self.graficar, bg="#ff8fab");self.btn3.place(x=550,y=70)       
+        self.btn4= Button(self, text="limpiar canvas", width=35,command=self.limpiar, bg="#ff8fab");self.btn4.place(x=550,y=100)       
         
         #self.l5=Label(self, text="");self.l5.place(x=10,y=290); self.l5.config(bg="#ff8fab")
         self.l6=Label(self, text="energia total");self.l6.place(x=10,y=320); self.l6.config(bg="#ffc2d1")
@@ -102,6 +108,10 @@ class app(Tk):
         self.DispMasGaston = ""
         self.masV = 0 
         self.diametro = 0
+        self.contador= 0
+
+        # Crear una lista para guardar las imágenes
+        self.imagenes = []
 
         #canvas
         self.c1 = Canvas(self, width=800, height=500, bg="white")
@@ -126,7 +136,7 @@ class app(Tk):
             if (self.horas > 0 ):
                 
                 #verificar que la lista no pase de 10 dispositivos
-                if len(listaDispositivos)>10:
+                if len(listaDispositivos)>9:
                     messagebox.showerror("error","Se ha superado el limite de dispositivos")
 
                 #agregar a la lista
@@ -178,29 +188,14 @@ class app(Tk):
                     for i in range(len(llaves)): 
                         self.lt = Label(self, text =llaves[i]); self.lt.place(x = 280 , y = 360+ i*30);self.lt.config(bg="#ff8fab")
                 
-
-                        
-    
-                    
-                    
-
-                #-----limpiar canvas-----
-                self.limpiar()
-            
-                
-                self.l12.config(text=" ")
-                self.l13.config(text=" ")
-                self.l14.config(text=" ")
-                self.l15.config(text=" ")
-                self.l16.config(text=" ")
-                self.l17.config(text=" ")
-
                 
 
             else: 
                 messagebox.showerror("Error", "Ingrese valores validos para la distancia y longitud")
         #except Exception as msg: 
         #    messagebox.showerror("error", "asegurese de ingresar un número válido y todos los valores ")
+
+
                        
     def calcular(self):
         self.largo = float(self.e5.get())
@@ -242,21 +237,54 @@ class app(Tk):
         # obtener todas las llaves para ver que es lo que hay
         # graficar
           
-        self.c1.create_rectangle((self.c1.winfo_width()/2)-250,  (self.c1.winfo_height()/2) +20, (self.c1.winfo_width()/2)+250,  (self.c1.winfo_height()/2)-20, fill='gray')
-
+        self.c1.create_rectangle((self.c1.winfo_width()/2)-250,  (self.c1.winfo_height()/2) +20, (self.c1.winfo_width())-100,  (self.c1.winfo_height()/2)-10, fill='gray')
 
         if len(listaDispositivos)>0:
 
-            #clavesLista=[clave for dict in listaDispositivos for clave in dict ]
+            #
+            self.width_canvas= (self.c1.winfo_width())-710
+            self.altura_canvas= (self.c1.winfo_height()/2) - 100
+
+            self.width_canvas2= (self.c1.winfo_width())-710
+            self.altura_canvas2= (self.c1.winfo_height()/2) + 100
+            
             for elemento in llaves:
                 # Para cada clave en el diccionario
                 for key in Electrodomesticos.keys():
                     # Si el elemento es igual a la clave
                     if elemento == key:
-                        valor = Electrodomesticos[key]
+                        self.contador+= 1
+                        print("\n contador"+str(self.contador))
+                        valor_link_imagen = Electrodomesticos[key]
                         print(f'el elemento de la lista {elemento} s igual a la clave {key}')
-                        print(valor)
+                        print(valor_link_imagen)
                         # poner la imagen al canvas
+                        response = requests.get(valor_link_imagen)
+                        img_data= response.content
+                        #Abrir la imagen con PIL 
+                        img = Image.open(BytesIO(img_data))
+                        #cambiar el tamaño 
+                        nuevo_tamanio=(100,100)
+                        img = img.resize(nuevo_tamanio)
+                        #convertir la imagen a formato tkinter
+                        tk_img = ImageTk.PhotoImage(img)
+                        self.imagenes.append(tk_img)
+
+                        if (self.contador <6 ):
+                            #aumentar el valor del canvas
+                            self.width_canvas= self.width_canvas+110
+                            #Añadir la imagen al canvas
+                            self.c1.create_image(self.width_canvas,self.altura_canvas, image=self.imagenes[-1])
+                        else:
+                            self.width_canvas2= self.width_canvas2+110
+                            #Añadir la imagen al canvas
+                            self.c1.create_image(self.width_canvas2,self.altura_canvas2, image=self.imagenes[-1])
+
+                        
+
+
+                        
+                        
 
 
 
