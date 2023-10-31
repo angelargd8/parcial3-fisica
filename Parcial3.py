@@ -47,6 +47,8 @@ listaDispositivos=[]
 llaves=[]
 
 
+
+
 class app(Tk):
     def __init__(self): 
         Tk.__init__(self)
@@ -84,10 +86,11 @@ class app(Tk):
         self.l6=Label(self, text="energia total");self.l6.place(x=10,y=320); self.l6.config(bg="#ffc2d1")
         self.l7=Label(self, text="");self.l7.place(x=10,y=350); self.l7.config(bg="#ff8fab")
         self.l8=Label(self, text="");self.l8.place(x=10,y=390); self.l8.config(bg="#ffc2d1")
-        self.l9=Label(self, text="");self.l9.place(x=10,y=290); self.l9.config(bg="#ff8fab")
-        self.l10=Label(self, text="");self.l10.place(x=10,y=430); self.l10.config(bg="#ffc2d1")
-        self.l11=Label(self, text="");self.l11.place(x=10,y=470); self.l11.config(bg="#ff8fab")
-        self.l12=Label(self, text="");self.l12.place(x=10,y=510); self.l12.config(bg="#ffc2d1")
+        self.l10=Label(self, text="");self.l10.place(x=10,y=430); self.l10.config(bg="#ff8fab")
+        
+        self.l11=Label(self, text="Lista de dispositivos");self.l11.place(x=280,y=320); self.l11.config(bg="#ff8fab")
+        self.l12=Label(self, text="");self.l12.place(x=280,y=350); self.l12.config(bg="#ffc2d1")
+
         self.l13=Label(self, text="");self.l13.place(x=10,y=550); self.l13.config(bg="#ff8fab")
         self.l14=Label(self, text="");self.l14.place(x=10,y=590); self.l14.config(bg="#ffc2d1")
         self.l15=Label(self, text="");self.l15.place(x=10,y=630); self.l15.config(bg="#ff8fab")
@@ -102,7 +105,7 @@ class app(Tk):
 
         #canvas
         self.c1 = Canvas(self, width=800, height=500, bg="white")
-        self.c1.place(x=350, y=150)
+        self.c1.place(x=450, y=150)
         self.c1.config(bg="misty rose")
 
   
@@ -111,7 +114,7 @@ class app(Tk):
     def AgregarDispositivo(self):
         
         
-        try:
+       # try:
             #obtener los datos del dispositivo y del cable
             self.dispexist = True
             self.nombre= str(self.caja.get())
@@ -130,8 +133,8 @@ class app(Tk):
                 else:
                     #calculos, para luego agregarlo al diccionario
                     
-                    self.costoHora= 126 #Kw/h
-                    self.tiempo= (30/1)*(self.horas/1)
+                    self.costoHora= 1.47 # por kw
+                    self.tiempo= (30)*(self.horas) # tiempo por mes
                     self.energia=(self.potencia* self.tiempo)/1000
 
                     #creamos un diccionario con todos los valores 
@@ -146,6 +149,8 @@ class app(Tk):
                     #sumar a la energia todal la energia agregada
                     self.energiaTotal += self.energia
                     self.l7.config(text=str(self.energiaTotal))
+                    self.l8.config(text="Gasto total Baja tensión simple")
+                    self.l10.config(text=str(self.energiaTotal/1000*self.tiempo*self.costoHora)+" Q")
 
                     # que disp gasta mas 
                     if self.corriente > self.Imax: 
@@ -167,7 +172,16 @@ class app(Tk):
                     llaves.append(self.nombre)
                     print(listaDispositivos)
                     print(llaves)
+                   
+                    
+                    #mostrar en pantalla los dispositivos
+                    for i in range(len(llaves)): 
+                        self.lt = Label(self, text =llaves[i]); self.lt.place(x = 280 , y = 360+ i*30);self.lt.config(bg="#ff8fab")
+                
 
+                        
+    
+                    
                     
 
                 #-----limpiar canvas-----
@@ -185,8 +199,8 @@ class app(Tk):
 
             else: 
                 messagebox.showerror("Error", "Ingrese valores validos para la distancia y longitud")
-        except Exception as msg: 
-            messagebox.showerror("error", "asegurese de ingresar un número válido y todos los valores ")
+        #except Exception as msg: 
+        #    messagebox.showerror("error", "asegurese de ingresar un número válido y todos los valores ")
                        
     def calcular(self):
         self.largo = float(self.e5.get())
@@ -221,9 +235,7 @@ class app(Tk):
         else:
             messagebox.showerror("error", "Debe de ingresar al menos un dispositivo ")
 
-
-
-   
+    
     
 
     def graficar(self):
